@@ -45,7 +45,9 @@ Usage: agg <aggregate type>
 
 Available aggregate types:
   geommean    geometric mean
+  max         maximum value
   mean        arithmetic mean
+  min         minimum value
   stddev      standard deviation (with Bessel's correction)
   sum         basic sum
   variance    variance (with Bessel's correction)

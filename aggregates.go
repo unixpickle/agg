@@ -10,6 +10,8 @@ var Aggregates = map[string]Aggregate{
 	"variance": aggregateVariance,
 	"stddev":   aggregateStddev,
 	"geommean": GeometricMean,
+	"max":      aggregateMax,
+	"min":      aggregateMin,
 }
 
 var AggregateUsage = map[string]string{
@@ -18,6 +20,8 @@ var AggregateUsage = map[string]string{
 	"variance": "variance (with Bessel's correction)",
 	"stddev":   "standard deviation (with Bessel's correction)",
 	"geommean": "geometric mean",
+	"max":      "maximum value",
+	"min":      "minimum value",
 }
 
 func aggregateSum(ch <-chan float64) float64 {
@@ -40,4 +44,20 @@ func aggregateVariance(ch <-chan float64) float64 {
 
 func aggregateStddev(ch <-chan float64) float64 {
 	return math.Sqrt(aggregateVariance(ch))
+}
+
+func aggregateMax(ch <-chan float64) float64 {
+	max := math.Inf(-1)
+	for num := range ch {
+		max = math.Max(max, num)
+	}
+	return max
+}
+
+func aggregateMin(ch <-chan float64) float64 {
+	min := math.Inf(1)
+	for num := range ch {
+		min = math.Min(min, num)
+	}
+	return min
 }
