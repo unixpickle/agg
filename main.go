@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"sort"
@@ -12,21 +13,31 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	flag.Usage = func() {
 		for _, line := range usageLines() {
 			fmt.Fprintln(os.Stderr, line)
 		}
+		fmt.Fprintln(os.Stderr, "Optional flags:")
+		flag.PrintDefaults()
+	}
+
+	var strictMode bool
+	flag.BoolVar(&strictMode, "strict", false, "fail if an input token is invalid")
+	flag.Parse()
+
+	if len(flag.Args()) != 1 {
+		flag.Usage()
 		os.Exit(1)
 	}
 
-	agg, ok := Aggregates[os.Args[1]]
+	agg, ok := Aggregates[flag.Args()[0]]
 	if !ok {
 		essentials.Die("unknown aggregate:", os.Args[1])
 	}
-	fmt.Println(agg(readFloats()))
+	fmt.Println(agg(readFloats(strictMode)))
 }
 
-func readFloats() <-chan float64 {
+func readFloats(strictMode bool) <-chan float64 {
 	res := make(chan float64, 128)
 	go func() {
 		defer close(res)
@@ -37,9 +48,14 @@ func readFloats() <-chan float64 {
 			if len(trimmedLine) > 0 {
 				val, err := strconv.ParseFloat(trimmedLine, 64)
 				if err != nil {
-					essentials.Die("bad line:", err)
+					if strictMode {
+						essentials.Die("invalid token:", err)
+					} else {
+						fmt.Fprintln(os.Stderr, "skipping invalid token:", trimmedLine)
+					}
+				} else {
+					res <- val
 				}
-				res <- val
 			}
 		}
 	}()
@@ -48,7 +64,7 @@ func readFloats() <-chan float64 {
 
 func usageLines() []string {
 	usage := []string{
-		"Usage: " + os.Args[0] + " <aggregate type>",
+		"Usage: " + os.Args[0] + " [flags] <aggregate type>",
 		"",
 		"Available aggregate types:",
 	}
