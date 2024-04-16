@@ -30,7 +30,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	agg, ok := Aggregates[flag.Args()[0]]
+	aggName := flag.Args()[0]
+
+	agg, ok := Aggregates[aggName]
 	if !ok {
 		essentials.Die("unknown aggregate:", os.Args[1])
 	}
